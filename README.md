@@ -42,10 +42,5 @@ npm run dev
 * Dark mode toggle
 * Upload text files
 
-## License
-
-MIT License
-
----
 
 Simple tool to improve reading speed and focus.
