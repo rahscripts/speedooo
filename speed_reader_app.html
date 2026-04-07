@@ -1,0 +1,201 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  #app { max-width: 780px; margin: 0 auto; padding: 2rem 1rem; }
+  .header { margin-bottom: 2rem; }
+  .header h1 { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  .header p { font-size: 14px; color: var(--color-text-secondary); margin-top: 4px; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+  textarea { width: 100%; min-height: 120px; max-height: 400px; resize: vertical; font-family: var(--font-sans); font-size: 15px; line-height: 1.7; color: var(--color-text-primary); background: transparent; border: none; outline: none; }
+  textarea::placeholder { color: var(--color-text-tertiary); }
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 1rem 0 0; border-top: 0.5px solid var(--color-border-tertiary); margin-top: 0.75rem; }
+  .wpm-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .wpm-btn { font-size: 13px; font-weight: 500; padding: 6px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+  .wpm-btn:hover { background: var(--color-background-secondary); }
+  .wpm-btn.active { background: #1D9E75; border-color: #1D9E75; color: #fff; }
+  .action-btns { display: flex; gap: 8px; margin-left: auto; }
+  .btn-play { font-size: 14px; font-weight: 500; padding: 7px 20px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-text-primary); color: var(--color-background-primary); cursor: pointer; transition: all 0.15s; }
+  .btn-play:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-reset { font-size: 14px; font-weight: 500; padding: 7px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+  .btn-reset:hover { background: var(--color-background-secondary); }
+  .reader-area { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 2.5rem 1.25rem; margin-bottom: 1rem; text-align: center; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+  .word-display { font-size: 48px; font-weight: 500; color: var(--color-text-primary); letter-spacing: -0.5px; line-height: 1.1; min-height: 60px; display: flex; align-items: center; justify-content: center; }
+  .word-display .pivot { color: #1D9E75; }
+  .reader-meta { display: flex; gap: 2rem; margin-top: 1.5rem; }
+  .meta-item { text-align: center; }
+  .meta-val { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+  .meta-lbl { font-size: 12px; color: var(--color-text-tertiary); margin-top: 2px; }
+  .progress-bar { width: 100%; height: 3px; background: var(--color-background-secondary); border-radius: 99px; margin-top: 1.5rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: #1D9E75; border-radius: 99px; transition: width 0.1s linear; }
+  .status-idle { font-size: 15px; color: var(--color-text-tertiary); }
+  .char-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+  .guide-line { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 2px; height: 56px; background: #1D9E75; opacity: 0.15; border-radius: 2px; }
+</style>
+
+<div id="app">
+  <div class="header">
+    <h1>Speed Reader</h1>
+    <p>Paste text, choose your pace, and read one word at a time.</p>
+  </div>
+
+  <div class="card">
+    <textarea id="inputText" placeholder="Paste your text here... articles, essays, emails, anything you want to read faster.">The human brain is a remarkable organ, capable of processing enormous amounts of information every second. Yet most people read far below their potential speed, often because of subvocalisation — the habit of silently pronouncing each word in our heads as we read. Speed reading techniques aim to break this habit by training the eye and brain to recognise words as visual patterns rather than sounds. One of the most effective methods is rapid serial visual presentation, or RSVP, which flashes words one at a time at the centre of vision, eliminating the need for eye movements across a page. Research suggests that with regular practice, readers can significantly increase their words-per-minute rate while maintaining or even improving comprehension. The key is consistent training and gradually increasing the reading speed over time, letting the brain adapt to the new rhythm of information intake.</textarea>
+    <div class="controls">
+      <div class="wpm-group" id="wpmGroup">
+        <button class="wpm-btn" data-wpm="150">150</button>
+        <button class="wpm-btn active" data-wpm="200">200</button>
+        <button class="wpm-btn" data-wpm="250">250</button>
+        <button class="wpm-btn" data-wpm="300">300</button>
+        <button class="wpm-btn" data-wpm="400">400</button>
+        <button class="wpm-btn" data-wpm="500">500</button>
+      </div>
+      <span style="font-size:12px;color:var(--color-text-tertiary)">WPM</span>
+      <div class="action-btns">
+        <button class="btn-reset" id="resetBtn">Reset</button>
+        <button class="btn-play" id="playBtn">Start</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="reader-area" id="readerArea">
+    <div class="guide-line" id="guideLine" style="display:none"></div>
+    <div id="wordDisplay" class="word-display">
+      <span class="status-idle">Press Start to begin</span>
+    </div>
+    <div class="reader-meta" id="readerMeta" style="display:none">
+      <div class="meta-item"><div class="meta-val" id="metaWpm">—</div><div class="meta-lbl">WPM</div></div>
+      <div class="meta-item"><div class="meta-val" id="metaWord">—</div><div class="meta-lbl">Word</div></div>
+      <div class="meta-item"><div class="meta-val" id="metaLeft">—</div><div class="meta-lbl">Remaining</div></div>
+      <div class="meta-item"><div class="meta-val" id="metaTime">—</div><div class="meta-lbl">Min left</div></div>
+    </div>
+    <div class="progress-bar" id="progressBar" style="display:none">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let words = [];
+  let idx = 0;
+  let wpm = 200;
+  let timer = null;
+  let running = false;
+
+  const textarea = document.getElementById('inputText');
+  const playBtn = document.getElementById('playBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const wordDisplay = document.getElementById('wordDisplay');
+  const readerMeta = document.getElementById('readerMeta');
+  const progressBar = document.getElementById('progressBar');
+  const progressFill = document.getElementById('progressFill');
+  const guideLine = document.getElementById('guideLine');
+  const metaWpm = document.getElementById('metaWpm');
+  const metaWord = document.getElementById('metaWord');
+  const metaLeft = document.getElementById('metaLeft');
+  const metaTime = document.getElementById('metaTime');
+
+  document.querySelectorAll('.wpm-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.wpm-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      wpm = parseInt(btn.dataset.wpm);
+      if (running) { clearInterval(timer); scheduleNext(); }
+    });
+  });
+
+  function getPivotIndex(word) {
+    const len = word.length;
+    if (len <= 1) return 0;
+    if (len <= 5) return 1;
+    if (len <= 9) return 2;
+    return 3;
+  }
+
+  function renderWord(word) {
+    const pi = getPivotIndex(word);
+    const pre = word.slice(0, pi);
+    const pivot = word[pi];
+    const post = word.slice(pi + 1);
+    wordDisplay.innerHTML = `<span style="color:var(--color-text-tertiary)">${pre}</span><span class="pivot">${pivot}</span><span style="color:var(--color-text-primary)">${post}</span>`;
+  }
+
+  function scheduleNext() {
+    const delay = Math.round(60000 / wpm);
+    timer = setInterval(() => {
+      if (idx >= words.length) { finish(); return; }
+      const word = words[idx];
+      renderWord(word);
+      metaWord.textContent = `${idx + 1}`;
+      metaLeft.textContent = `${words.length - idx - 1}`;
+      metaTime.textContent = ((words.length - idx - 1) / wpm).toFixed(1);
+      metaWpm.textContent = wpm;
+      const pct = Math.round(((idx + 1) / words.length) * 100);
+      progressFill.style.width = pct + '%';
+      idx++;
+    }, delay);
+  }
+
+  function start() {
+    const raw = textarea.value.trim();
+    if (!raw) return;
+    words = raw.split(/\s+/).filter(Boolean);
+    if (!words.length) return;
+    idx = 0;
+    running = true;
+    playBtn.textContent = 'Pause';
+    readerMeta.style.display = 'flex';
+    progressBar.style.display = 'block';
+    guideLine.style.display = 'block';
+    scheduleNext();
+  }
+
+  function pause() {
+    clearInterval(timer);
+    running = false;
+    playBtn.textContent = 'Resume';
+  }
+
+  function resume() {
+    running = true;
+    playBtn.textContent = 'Pause';
+    scheduleNext();
+  }
+
+  function finish() {
+    clearInterval(timer);
+    running = false;
+    wordDisplay.innerHTML = '<span style="color:#1D9E75;font-size:36px">Done</span>';
+    playBtn.textContent = 'Start';
+    progressFill.style.width = '100%';
+    readerMeta.style.display = 'none';
+  }
+
+  function reset() {
+    clearInterval(timer);
+    running = false;
+    idx = 0;
+    words = [];
+    wordDisplay.innerHTML = '<span class="status-idle">Press Start to begin</span>';
+    playBtn.textContent = 'Start';
+    readerMeta.style.display = 'none';
+    progressBar.style.display = 'none';
+    guideLine.style.display = 'none';
+    progressFill.style.width = '0%';
+  }
+
+  playBtn.addEventListener('click', () => {
+    if (!running && idx === 0) start();
+    else if (running) pause();
+    else resume();
+  });
+
+  resetBtn.addEventListener('click', reset);
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && e.target !== textarea) {
+      e.preventDefault();
+      playBtn.click();
+    }
+  });
+</script>
