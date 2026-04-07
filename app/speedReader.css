@@ -11,8 +11,35 @@
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+:root.dark {
+  --color-background-primary: #09090b;
+  --color-background-secondary: #18181b;
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a1a1aa;
+  --color-text-tertiary: #52525b;
+  --color-border-secondary: #27272a;
+  --color-border-tertiary: #18181b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --color-background-primary: #09090b;
+    --color-background-secondary: #18181b;
+    --color-text-primary: #fafafa;
+    --color-text-secondary: #a1a1aa;
+    --color-text-tertiary: #52525b;
+    --color-border-secondary: #27272a;
+    --color-border-tertiary: #18181b;
+  }
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-sans); }
+body { 
+  font-family: var(--font-sans); 
+  background-color: var(--color-background-primary);
+  color: var(--color-text-primary);
+  transition: background-color 0.2s, color 0.2s;
+}
 #app-container { max-width: 780px; margin: 0 auto; padding: 2rem 1rem; }
 .header { margin-bottom: 2rem; }
 .header h1 { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
@@ -41,3 +68,49 @@ textarea::placeholder { color: var(--color-text-tertiary); }
 .progress-fill { height: 100%; background: #1D9E75; border-radius: 99px; transition: width 0.1s linear; }
 .status-idle { font-size: 15px; color: var(--color-text-tertiary); }
 .guide-line { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 2px; height: 56px; background: #1D9E75; opacity: 0.15; border-radius: 2px; }
+
+.top-actions {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 8px;
+}
+
+.github-star-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  background: var(--color-background-secondary);
+  padding: 6px 12px;
+  border-radius: var(--border-radius-md);
+  border: 0.5px solid var(--color-border-secondary);
+  transition: all 0.15s;
+}
+
+.github-star-btn:hover {
+  background: var(--color-border-secondary);
+}
+
+.footer-built {
+  margin-top: 3rem;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-tertiary);
+  padding-bottom: 2rem;
+}
+
+.footer-built a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.footer-built a:hover {
+  color: var(--color-text-primary);
+}
